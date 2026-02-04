@@ -1,5 +1,9 @@
 (defpackage :iwd
-  (:use #:cl #:stumpwm #:alexandria))
+  (:use #:cl
+        #:stumpwm
+        #:alexandria)
+  (:export #:init
+           #:*check-interval*))
 (in-package :iwd)
 
 (defvar *check-interval* 3)

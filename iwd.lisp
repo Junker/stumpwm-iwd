@@ -3,13 +3,14 @@
         #:stumpwm
         #:alexandria)
   (:export #:init
-           #:*check-interval*))
+           #:*check-interval*
+           #:*modeline-fmt*))
 (in-package :iwd)
 
-(defvar *check-interval* 3)
 (defvar *destination* "net.connman.iwd")
 (defvar *connected-network* nil)
 
+(defparameter *check-interval* 3)
 (defparameter *modeline-fmt* "%e - %p%"
   "The default value for displaying wifi information on the modeline")
 

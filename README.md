@@ -23,6 +23,7 @@ git clone https://github.com/Junker/stumpwm-iwd iwd
 
 ```common-lisp
 (iwd:init)
+(setf stumpwm:*screen-mode-line-format* "... %I ...")
 ```
 
 ### Parameters
@@ -35,6 +36,6 @@ git clone https://github.com/Junker/stumpwm-iwd iwd
 
 ### Parameters for modeline
 
-- `iwd:*modeline-fmt*` - format of IWD modeline (default: "%e %p")
+- `iwd:*modeline-fmt*` - format of iwd modeline (default: `%e %p`)
   - `%e` - Network ESSID
   - `%p` - Signal quality

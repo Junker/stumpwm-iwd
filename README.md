@@ -1,6 +1,7 @@
 # StumpWM iwd
 
-StumpWM module for iwd (iNet wireless daemon)
+StumpWM module for iwd (iNet wireless daemon).
+The module operates in a non-blocking manner, utilizing a separate thread to interact with iwd via DBUS.
 
 ## Requirements
 
@@ -28,7 +29,7 @@ git clone https://github.com/Junker/stumpwm-iwd iwd
 
 ### Parameters
 
-- `iwd:*check-interval*` - Interval in seconds for battery check (Default: 3). 
+- `iwd:*check-interval*` - Interval in seconds for wifi status check (Default: 3). 
 
 ## Modeline
 

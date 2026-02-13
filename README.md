@@ -1,6 +1,7 @@
 # StumpWM iwd
 
 StumpWM module for iwd (iNet wireless daemon).
+
 The module operates in a non-blocking manner, utilizing a separate thread to interact with iwd via DBUS.
 
 ## Requirements

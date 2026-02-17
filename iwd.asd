@@ -4,5 +4,5 @@
   :license  "GPLv3"
   :version "0.1.0"
   :serial t
-  :depends-on (#:stumpwm #:dbus)
+  :depends-on (#:stumpwm #:dbus #:bordeaux-threads)
   :components ((:file "iwd")))

@@ -7,7 +7,9 @@
            #:*modeline-fmt*))
 (in-package :iwd)
 
-(defvar *destination* "net.connman.iwd")
+(defvar *dbus-conn* nil)
+(defvar *dbus-bus* nil)
+(defvar *dbus-destination* "net.connman.iwd")
 (defvar *connected-network* nil)
 
 (defparameter *check-interval* 3)
@@ -27,50 +29,50 @@
     ((<= dbm -100) 0)
     (t (* 2 (+ 100 dbm)))))
 
-(defun get-device-property (bus prop)
-  (dbus:with-introspected-object (device bus
-                                         *station-path*
-                                         *destination*)
-    (device "org.freedesktop.DBus.Properties" "Get"
-            "net.connman.iwd.Station" prop)))
-
-(defun get-network-property (bus network-path prop)
-  (dbus:with-introspected-object (station bus
+(defun get-network-property (network-path prop)
+  (dbus:with-introspected-object (station *dbus-bus*
                                           network-path
-                                          *destination*)
+                                          *dbus-destination*)
     (station "org.freedesktop.DBus.Properties" "Get"
              "net.connman.iwd.Network" prop)))
 
-(defun get-station-ordered-networks (bus path)
-  (dbus:with-introspected-object (station bus
+(defun get-station-ordered-networks (path)
+  (dbus:with-introspected-object (station *dbus-bus*
                                           path
-                                          *destination*)
+                                          *dbus-destination*)
     (station "net.connman.iwd.Station" "GetOrderedNetworks")))
 
-(defun get-all-objects (bus)
-  (dbus:get-managed-objects bus *destination* "/"))
+(defun get-all-objects ()
+  (dbus:get-managed-objects *dbus-bus* *dbus-destination* "/"))
 
-(defun get-objects-with-connected-stations (bus)
+(defun get-objects-with-connected-stations ()
   (remove-if (lambda (obj)
                (let ((station (assql-value (cadr obj) "net.connman.iwd.Station")))
                  (or (not station)
                      (not (equal (assql-value station "State")
                                  "connected")))))
-             (get-all-objects bus)))
+             (get-all-objects)))
 
 (defun get-info ()
-  (dbus:with-open-bus (bus (dbus:system-server-addresses))
-    (when-let ((connected-obj (car (get-objects-with-connected-stations bus))))
-      (let* ((station (assql-value (cadr connected-obj) "net.connman.iwd.Station"))
-             (connected-network-path (assql-value station "ConnectedNetwork"))
-             (networks (get-station-ordered-networks bus (car connected-obj))))
-        (cons (get-network-property bus connected-network-path "Name")
-              (dbm-to-quality-percent (/ (assql-value networks connected-network-path) 100)))))))
+  (when-let ((connected-obj (car (get-objects-with-connected-stations))))
+    (let* ((station (assql-value (cadr connected-obj) "net.connman.iwd.Station"))
+           (connected-network-path (assql-value station "ConnectedNetwork"))
+           (networks (get-station-ordered-networks (car connected-obj))))
+      (cons (get-network-property connected-network-path "Name")
+            (dbm-to-quality-percent (/ (assql-value networks connected-network-path) 100))))))
 
 (defun update-info ()
   (setf *connected-network* (get-info)))
 
 (defun init ()
+  (setf *dbus-conn*
+	      (dbus:open-connection
+	       (make-instance 'iolib.multiplex:event-base) (dbus:system-server-addresses)))
+  (dbus:authenticate (dbus:supported-authentication-mechanisms *dbus-conn*)
+                     *dbus-conn*)
+  (setf *dbus-bus* (make-instance 'dbus::bus
+                                  :name (dbus:hello *dbus-conn*)
+                                  :connection *dbus-conn*))
   (update-info)
   (run-with-timer 0 *check-interval*
                   (lambda ()

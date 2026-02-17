@@ -72,7 +72,11 @@
 
 (defun init ()
   (update-info)
-  (run-with-timer 0 *check-interval* #'update-info))
+  (run-with-timer 0 *check-interval*
+                  (lambda ()
+                    (bt:make-thread (lambda ()
+                                      (update-info))
+                                    :name "iwd-update-info"))))
 
 (defun modeline (ml)
   (declare (ignore ml))

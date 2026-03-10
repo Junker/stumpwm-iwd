@@ -11,6 +11,7 @@
 (defvar *dbus-bus* nil)
 (defvar *dbus-destination* "net.connman.iwd")
 (defvar *connected-network* nil)
+(defvar *update-lock* (bt:make-lock))
 
 (defparameter *check-interval* 3)
 (defparameter *modeline-fmt* "%e - %p%"
@@ -77,7 +78,8 @@
   (run-with-timer 0 *check-interval*
                   (lambda ()
                     (bt:make-thread (lambda ()
-                                      (update-info))
+                                      (bt:with-lock-held (*update-lock*)
+                                        (update-info)))
                                     :name "iwd-update-info"))))
 
 (defun modeline (ml)
